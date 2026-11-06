@@ -1,0 +1,15 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "on-a-website",
+  "compatibility_date": "2026-10-30",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./public"
+  },
+  "routes": [
+    {
+      "pattern": "on-a.website",
+      "custom_domain": true
+    }
+  ]
+}
