@@ -3,6 +3,10 @@
   "name": "thumb-on-a-webiste",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-30",
+  "assets": {
+    "directory": "./public",
+    "run_worker_first": ["/og", "/og/*"]
+  },
   "workers_dev": false,
   "routes": [
     {

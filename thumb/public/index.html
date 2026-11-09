@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#202722" />
+    <meta name="description" content="Create and preview OG images." />
+    <title>thumb editor</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <div class="shell">
+      <main>
+        <header class="intro">
+          <h1>thumb<em>editor</em></h1>
+        </header>
+
+        <section class="editor-card" aria-labelledby="editor-heading">
+          <div class="section-heading">
+            <h2 id="editor-heading">Inputs</h2>
+            <button type="button" id="reset-button" class="reset-button" disabled>Reset <span aria-hidden="true">↺</span></button>
+          </div>
+
+          <form id="editor" class="editor-grid" hidden>
+            <div class="editor-fields">
+              <div class="field">
+                <label for="title">Title</label>
+                <input id="title" name="title" type="text" value="Your title here" autocomplete="off" required />
+              </div>
+
+              <div class="field">
+                <div class="field-label-row">
+                  <span id="pixel-art-label" class="field-label">Pixel art</span>
+                  <div class="brushes" role="group" aria-label="Paint color">
+                    <button type="button" class="brush" data-brush="1" aria-label="Paint with color 1" aria-pressed="true">1</button>
+                    <button type="button" class="brush" data-brush="2" aria-label="Paint with color 2" aria-pressed="false">2</button>
+                    <button type="button" class="brush" data-brush="3" aria-label="Paint with color 3" aria-pressed="false">3</button>
+                    <button type="button" class="brush" data-brush="4" aria-label="Paint with color 4" aria-pressed="false">4</button>
+                    <button type="button" class="brush" data-brush="5" aria-label="Paint with color 5" aria-pressed="false">5</button>
+                    <button type="button" class="brush brush-erase" data-brush="." aria-label="Erase pixels" aria-pressed="false">Erase</button>
+                  </div>
+                </div>
+                <div class="pixel-grid-scroll">
+                  <div id="pixel-art" class="pixel-grid" role="group" aria-labelledby="pixel-art-label" aria-describedby="pixel-art-help"></div>
+                </div>
+                <p id="pixel-art-help" class="grid-instructions">Use arrow keys to move between pixels; press Space or Enter to paint.</p>
+              </div>
+            </div>
+
+            <div class="palette-panel">
+              <div class="palette-heading">
+                <h3>Palette</h3>
+                <p id="palette-link-help" class="palette-help">Accent sets color 1 until you edit color 1.</p>
+              </div>
+              <div id="palette" class="palette-list"></div>
+            </div>
+          </form>
+          <p id="preview-status" class="editor-status" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="previews" aria-label="OG image previews">
+          <article class="preview-card" data-size="1200x630">
+            <div class="preview-toolbar">
+              <div><h3>Social landscape</h3><span class="size-label">1200 × 630</span></div>
+              <a class="open-link" data-open target="_blank" rel="noopener" aria-label="Open social landscape preview, 1200 by 630">Open <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="preview-stage"><img data-preview width="1200" height="630" alt="1200 by 630 OG image preview" /></div>
+          </article>
+
+          <article class="preview-card preview-square" data-size="1200x1200">
+            <div class="preview-toolbar">
+              <div><h3>Square</h3><span class="size-label">1200 × 1200</span></div>
+              <a class="open-link" data-open target="_blank" rel="noopener" aria-label="Open square preview, 1200 by 1200">Open <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="preview-stage"><img data-preview width="1200" height="1200" alt="1200 by 1200 OG image preview" /></div>
+          </article>
+
+          <article class="preview-card" data-size="1280x720">
+            <div class="preview-toolbar">
+              <div><h3>Wide landscape</h3><span class="size-label">1280 × 720</span></div>
+              <a class="open-link" data-open target="_blank" rel="noopener" aria-label="Open wide landscape preview, 1280 by 720">Open <span aria-hidden="true">↗</span></a>
+            </div>
+            <div class="preview-stage"><img data-preview width="1280" height="720" alt="1280 by 720 OG image preview" /></div>
+          </article>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

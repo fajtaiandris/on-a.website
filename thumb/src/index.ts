@@ -1,69 +1,32 @@
 import { Hono } from 'hono'
+import { defaultColors, gridColumns, gridRows, pixelArt } from './design'
+import { isSize, isXmlCompatibleText, parseColors, parsePixelArt } from './parameters'
+import { renderOgSvg } from './svg'
 
 const app = new Hono()
 
-const cellSize = 50
-const colors = { accent: '#292929', background: '#c8d9c7' } as const
-
-const escapeXml = (text: string) =>
-  text.replace(/[&<>"']/g, (character) => {
-    const entities: Record<string, string> = {
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&apos;',
-    }
-    return entities[character]
-  })
-
-// One character per grid cell, from the top left of the reference image.
-const pixelArt = [
-  '.......###..#####.......',
-  '.....##.#.##.....##.....',
-  '....#..###...#####.#....',
-  '...#..#.#...##....###...',
-  '..#.##...#.#....##.#.#..',
-  '.#.##...###....##..#.##.',
-  '.##.#..#..#..##...#..##.',
-  '##...##....##....#..#.##',
-  '#...##....#.##..#...#..#',
-]
-
-const pixelArtSvg = pixelArt
-  .flatMap((row, y) =>
-    [...row].flatMap((cell, x) =>
-      cell === '#'
-        ? [`<rect x="${x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="${colors.accent}"/>`]
-        : [],
-    ),
-  )
-  .join('')
+app.get('/og/defaults', (c) => c.json({
+  colors: defaultColors,
+  pixelArt,
+  grid: { columns: gridColumns, rows: gridRows },
+}))
 
 app.get('/og', (c) => {
   const title = c.req.query('title')?.trim()
   if (!title) return c.text('title is required', 400)
+  if (!isXmlCompatibleText(title)) return c.text('title contains characters that cannot appear in SVG', 400)
 
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <pattern id="grid" width="${cellSize}" height="${cellSize}" patternUnits="userSpaceOnUse">
-    <rect width="${cellSize}" height="${cellSize}" fill="${colors.background}" />
-    <path d="M ${cellSize} 0 H 0 V ${cellSize}" fill="none" stroke="${colors.accent}" stroke-width="3" />
-    </pattern>
-    <filter id="noise">
-      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="noise" />
-      <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
-    </filter>
-    </defs>
-  <g filter="url(#noise)">
-  <rect width="1200" height="630" fill="url(#grid)" />
-  ${pixelArtSvg}
-  <rect width="1200" height="180" y="450" x="0" fill="${colors.accent}"/>
-  <rect width="1200" height="630" fill="none" stroke="${colors.accent}" stroke-width="15" />
-  </g>
-  <text x="30" y="510" dominant-baseline="middle" text-anchor="start" fill="${colors.background}" font-family="Arial, sans-serif" font-size="84" font-weight="700" letter-spacing="-7px">${escapeXml(title)}</text>
-</svg>`
+  const size = c.req.query('size') ?? '1200x630'
+  if (!isSize(size)) return c.text('size must be 1200x630, 1200x1200, or 1280x720', 400)
 
+  const colors = parseColors(c.req.query('colors'))
+  if (!colors) return c.text('colors must be comma-separated key:hex pairs (accent, background, 1-5)', 400)
+
+  const art = parsePixelArt(c.req.query('pixelArt'))
+  if (!art) return c.text('pixelArt must be 9 rows of 24 cells using . and 1-5, separated by /', 400)
+
+  const svg = renderOgSvg({ title, size, colors, art })
+  if (!svg) return c.text('title is too long to fit in selected size', 400)
   return c.body(svg, 200, { 'Content-Type': 'image/svg+xml; charset=utf-8' })
 })
 
