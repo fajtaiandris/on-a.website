@@ -1,9 +1,9 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createPalette } from '../public/palette.js'
-import { createPixelGrid } from '../public/pixel-grid.js'
-import { createPreviews } from '../public/previews.js'
-import { app } from './api-app.mjs'
+import { createPalette } from '../editor/palette.js'
+import { createPixelGrid } from '../editor/pixel-grid.js'
+import { createPreviews } from '../editor/previews.js'
+import { generator } from '../scripts/core.mjs'
 
 class Element {
   constructor(className = '') {
@@ -29,7 +29,13 @@ class Element {
     }
   }
   addEventListener(type, listener) { this.listeners.set(type, listener) }
-  fire(type, event = {}) { this.listeners.get(type)?.({ target: this, ...event }) }
+  fire(type, event = {}) { return this.listeners.get(type)?.({ target: this, ...event }) }
+  replaceChildren(...children) {
+    this.children = []
+    this.append(...children)
+  }
+  focus() { document.activeElement = this }
+  scrollIntoView() {}
   setAttribute(name, value) { this.attributes.set(name, value) }
   removeAttribute(name) {
     this.attributes.delete(name)
@@ -82,7 +88,7 @@ test('palette links color 1 to accent until color 1 is edited', () => {
 
   controls('1')[1].value = '123'
   controls('1')[1].fire('input')
-  assert.match(palette.readColors().value, /1:112233/)
+  assert.equal(palette.readColors().colors['1'], '#112233')
   controls('accent')[0].value = '#fedcba'
   controls('accent')[0].fire('input')
   assert.equal(controls('1')[1].value, '123')
@@ -144,19 +150,24 @@ test('previews disable failed links and explain server title errors', async () =
   })
   const previews = new Element()
   previews.querySelectorAll = () => cards
-  globalThis.window = { location: { href: 'https://thumb.on-a.website/' } }
-  let colorResult = { value: 'accent:292929,background:c8d9c7' }
+  globalThis.window = { location: { href: 'http://127.0.0.1:8788/' } }
+  let colorResult = { colors: defaultColors }
   const pixelArt = Array(9).fill('.'.repeat(24)).join('/')
   const controller = createPreviews(title, previews, status, () => colorResult, () => pixelArt)
 
   controller.render()
   for (const card of cards) {
     const url = new URL(card.image.src)
-    assert.equal(url.pathname, '/og')
+    assert.equal(url.pathname, '/local/preview')
     assert.equal(url.searchParams.get('title'), 'A title')
     assert.equal(url.searchParams.get('size'), card.dataset.size)
     assert.equal(url.searchParams.get('pixelArt'), pixelArt)
-    assert.equal((await app.request(url.href)).status, 200)
+    assert.ok(generator.renderOgSvg({
+      title: url.searchParams.get('title'),
+      size: url.searchParams.get('size'),
+      colors: generator.parseColors(url.searchParams.get('colors')),
+      art: generator.parsePixelArt(url.searchParams.get('pixelArt')),
+    }))
     assert.equal(card.link.href, undefined)
     card.image.onload()
     assert.equal(card.link.href, card.image.src)
@@ -197,9 +208,119 @@ test('previews disable failed links and explain server title errors', async () =
   assert.equal(hexField.getAttribute('aria-describedby'), 'palette-link-help')
 
   title.value = 'Fixed title'
-  colorResult = { value: 'accent:292929,background:c8d9c7' }
+  colorResult = { colors: defaultColors }
   controller.render()
   assert.equal(title.getAttribute('aria-invalid'), 'false')
   assert.equal(title.getAttribute('aria-describedby'), undefined)
   assert.equal(status.textContent, '')
+})
+
+test('editor selection, dirty state, submit, save, and delete stay connected', async () => {
+  const nodes = new Map()
+  for (const selector of [
+    '#editor', '#editor-heading-text', '#unsaved-mark', '#reset-button', '#new-button',
+    '#save-button', '#delete-button', '#title', '#slug', '#slug-error', '#pixel-art', '.brushes',
+    '#palette', '#preview-status', '#save-status', '.previews', '#catalog-list',
+    '#catalog-count', '#catalog-filter', '.editor-card',
+  ]) nodes.set(selector, new Element())
+  document.querySelector = (selector) => nodes.get(selector)
+  const get = (selector) => nodes.get(selector)
+  get('#title').defaultValue = 'Your title here'
+  get('#catalog-filter').value = ''
+  get('.brushes').children = ['1', '2', '3', '4', '5', '.'].map((brush) => Object.assign(new Element(), { dataset: { brush } }))
+  const cards = ['1200x630', '1200x1200', '1280x720'].map((size) => {
+    const card = new Element()
+    card.dataset.size = size
+    const image = new Element()
+    const link = new Element()
+    card.querySelector = (selector) => selector === '[data-preview]' ? image : link
+    return card
+  })
+  get('.previews').querySelectorAll = () => cards
+
+  let stored = { slug: 'fixture', title: 'Fixture', colors: defaultColors, pixelArt: [...generator.pixelArt] }
+  const listeners = new Map()
+  const previousWindow = globalThis.window
+  const previousFetch = globalThis.fetch
+  globalThis.window = {
+    location: { href: 'http://127.0.0.1:8788/' },
+    confirm: () => true,
+    addEventListener: (type, listener) => listeners.set(type, listener),
+  }
+  const response = (value) => ({ ok: true, json: async () => value })
+  globalThis.fetch = async (url, options = {}) => {
+    if (url === '/local/catalog') {
+      return response({
+        items: [stored],
+        defaults: {
+          colors: defaultColors,
+          pixelArt: generator.pixelArt,
+          grid: { columns: generator.gridColumns, rows: generator.gridRows },
+        },
+      })
+    }
+    if (url === '/local/items' && options.method === 'POST') {
+      const { originalItem, item } = JSON.parse(options.body)
+      assert.deepEqual(originalItem, stored)
+      stored = item
+      return response({ item, items: [item] })
+    }
+    if (url === '/local/items/fixture' && options.method === 'DELETE') {
+      assert.deepEqual(JSON.parse(options.body).originalItem, stored)
+      return response({ items: [] })
+    }
+    throw new Error(`Unexpected request: ${url}`)
+  }
+
+  try {
+    await import('../editor/app.js')
+    get('#catalog-list').children[0].fire('click')
+    assert.equal(document.activeElement, get('#title'))
+    assert.equal(get('#title').value, 'Fixture')
+
+    const unload = () => {
+      const event = { prevented: false, preventDefault() { this.prevented = true } }
+      listeners.get('beforeunload')(event)
+      return event.prevented
+    }
+    get('#title').value = 'Changed'
+    get('#title').fire('input')
+    assert.equal(get('#unsaved-mark').hidden, false)
+    assert.equal(unload(), true)
+    get('#title').value = 'Fixture'
+    get('#title').fire('input')
+    assert.equal(get('#unsaved-mark').hidden, true)
+    assert.equal(unload(), false)
+
+    get('#slug').value = 'Invalid Slug'
+    get('#slug').fire('input')
+    await get('#editor').fire('submit', { preventDefault() {} })
+    assert.equal(get('#slug-error').hidden, false)
+    assert.equal(get('#slug').getAttribute('aria-invalid'), 'true')
+    assert.equal(get('#slug').getAttribute('aria-describedby'), 'slug-error')
+    assert.equal(document.activeElement, get('#slug'))
+    get('#slug').value = 'fixture'
+    get('#slug').fire('input')
+    assert.equal(get('#slug-error').hidden, true)
+    assert.equal(get('#slug').getAttribute('aria-describedby'), undefined)
+
+    get('#title').value = 'Saved title'
+    get('#title').fire('input')
+    let submitted = false
+    await get('#editor').fire('submit', { preventDefault() { submitted = true } })
+    assert.equal(submitted, true)
+    assert.equal(stored.title, 'Saved title')
+    assert.equal(get('#save-status').textContent, 'Saved.')
+    assert.equal(get('#unsaved-mark').hidden, true)
+    assert.equal(unload(), false)
+    assert.equal(document.activeElement, get('#save-button'))
+
+    await get('#delete-button').fire('click')
+    assert.equal(get('#save-status').textContent, 'Deleted.')
+    assert.equal(get('#delete-button').hidden, true)
+    assert.equal(document.activeElement, get('#title'))
+  } finally {
+    globalThis.window = previousWindow
+    globalThis.fetch = previousFetch
+  }
 })

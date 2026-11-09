@@ -10,6 +10,8 @@ export const isXmlCompatibleText = (value: string) =>
 export const isSize = (value: string): value is Size => hasOwn(sizes, value)
 
 const isColorKey = (key: string): key is ColorKey => hasOwn(defaultColors, key)
+export const isHexColor = (value: unknown): value is string =>
+  typeof value === 'string' && /^#?(?:[\da-fA-F]{3}|[\da-fA-F]{6})$/.test(value)
 
 export const parseColors = (value: string | undefined): Colors | null => {
   const overrides: Partial<Colors> = {}
@@ -17,7 +19,7 @@ export const parseColors = (value: string | undefined): Colors | null => {
   if (value !== undefined) {
     for (const entry of value.split(',')) {
       const [key, color, extra] = entry.split(':')
-      if (!isColorKey(key) || !color || extra !== undefined || !/^#?(?:[\da-fA-F]{3}|[\da-fA-F]{6})$/.test(color) || overrides[key]) {
+      if (!isColorKey(key) || !isHexColor(color) || extra !== undefined || overrides[key]) {
         return null
       }
       overrides[key] = `#${color.replace(/^#/, '')}`

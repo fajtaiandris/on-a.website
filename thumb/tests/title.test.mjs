@@ -1,12 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { fileURLToPath } from 'node:url'
-import { build } from 'esbuild'
+import { generator } from '../scripts/core.mjs'
 
-const entryPoint = fileURLToPath(new URL('../src/title.ts', import.meta.url))
-const bundle = await build({ entryPoints: [entryPoint], bundle: true, platform: 'node', format: 'esm', write: false, logLevel: 'silent' })
-const source = Buffer.from(bundle.outputFiles[0].text).toString('base64')
-const { layoutTitle } = await import(`data:text/javascript;base64,${source}`)
+const { layoutTitle } = generator
 
 test('title wrapping keeps combining marks and joined emoji together', () => {
   for (const title of ['AAAAe\u0301', 'AAAA👩‍👩‍👧‍👦']) {

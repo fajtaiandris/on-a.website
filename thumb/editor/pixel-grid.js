@@ -145,8 +145,8 @@ export const createPixelGrid = (grid, brushes, defaults, onChange) => {
 
   return {
     readArt: () => artRows.map((row) => row.join('')).join('/'),
-    reset: () => {
-      setArt(defaults.pixelArt)
+    reset: (rows = defaults.pixelArt) => {
+      setArt(rows)
       selectBrush('1')
     },
   }

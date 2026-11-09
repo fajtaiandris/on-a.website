@@ -101,19 +101,19 @@ export const createPalette = (palette, editor, initialColors, onChange) => {
 
   return {
     readColors() {
-      const pairs = []
+      const colors = {}
       for (const [key, label] of colorFields) {
         const { hex } = controlsByKey.get(key)
         const color = normalizeHex(hex.value)
         hex.setAttribute('aria-invalid', color ? 'false' : 'true')
         if (!color) return { error: `Enter a 3- or 6-digit hex value for ${label.toLowerCase()}.`, field: hex }
-        pairs.push(`${key}:${color.slice(1)}`)
+        colors[key] = color
       }
-      return { value: pairs.join(',') }
+      return { colors }
     },
     reset(colors) {
       for (const [key] of colorFields) setColor(key, colors[key])
-      colorOneLinked = true
+      colorOneLinked = normalizeHex(colors['1']) === normalizeHex(colors.accent)
       updateGridPalette()
     },
   }

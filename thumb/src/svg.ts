@@ -24,12 +24,12 @@ const renderGridLines = (artX: number, cellSize: number, gridWidth: number, grid
   ...Array.from({ length: gridRows }, (_, y) => `M ${artX} ${y * cellSize} H ${artX + gridWidth}`),
 ].join(' ')
 
-const renderPixelArt = (art: string[], colors: Colors, artX: number, cellSize: number) =>
+const renderPixelArt = (art: string[], colors: Colors, artX: number, cellSize: number, gridBleed: number) =>
   art.flatMap((row, y) =>
     [...row].flatMap((cell, x) => {
       const color = colors[cell as ColorKey]
       return color && cell !== '.'
-        ? [`<rect x="${artX + x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize}" fill="${color}"/>`]
+        ? [`<rect x="${artX + x * cellSize}" y="${y * cellSize}" width="${cellSize}" height="${cellSize + (y === gridRows - 1 ? gridBleed : 0)}" fill="${color}"/>`]
         : []
     }),
   ).join('')
@@ -62,31 +62,30 @@ export const renderOgSvg = ({ title, size, colors, art }: ImageOptions) => {
   const { width, height, cellSize } = sizes[size]
   const gridWidth = gridColumns * cellSize
   const gridHeight = gridRows * cellSize
+  // Keep the last row and its background filled through the filter's displacement.
+  const gridBleed = 6
   const artX = (width - gridWidth) / 2
   const footerHeight = height - gridHeight
   const renderedTitle = renderTitle(title, size, width, gridHeight, footerHeight)
   if (!renderedTitle) return null
   const { fontSize, spans } = renderedTitle
-  const gridLines = renderGridLines(artX, cellSize, gridWidth, gridHeight)
-  const pixelArtSvg = renderPixelArt(art, colors, artX, cellSize)
+  const gridLines = renderGridLines(artX, cellSize, gridWidth, gridHeight + gridBleed)
+  const pixelArtSvg = renderPixelArt(art, colors, artX, cellSize, gridBleed)
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <defs>
-    <clipPath id="grid-clip"><rect width="${width}" height="${gridHeight}" /></clipPath>
     <filter id="noise">
       <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="1" result="noise" />
       <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G" />
     </filter>
-    </defs>
+  </defs>
+  <rect width="${width}" height="${footerHeight}" y="${gridHeight}" x="0" fill="${colors.accent}"/>
   <g filter="url(#noise)">
-  <g clip-path="url(#grid-clip)">
-    <rect x="${artX}" width="${gridWidth}" height="${gridHeight}" fill="${colors.background}" />
+    <rect x="${artX}" width="${gridWidth}" height="${gridHeight + gridBleed}" fill="${colors.background}" />
     <path d="${gridLines}" fill="none" stroke="${colors.accent}" stroke-width="3" />
     ${pixelArtSvg}
   </g>
-  <rect width="${width}" height="${footerHeight}" y="${gridHeight}" x="0" fill="${colors.accent}"/>
   <rect width="${width}" height="${height}" fill="none" stroke="${colors.accent}" stroke-width="15" />
-  </g>
   <text dominant-baseline="middle" text-anchor="start" fill="${colors.background}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="700" letter-spacing="-0.083em">${spans}</text>
 </svg>`
 }

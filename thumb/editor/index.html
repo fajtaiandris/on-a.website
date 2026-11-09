@@ -4,8 +4,8 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#202722" />
-    <meta name="description" content="Create and preview OG images." />
-    <title>thumb editor</title>
+    <meta name="description" content="Manage locally generated OG images." />
+    <title>thumb local editor</title>
     <link rel="stylesheet" href="/styles.css" />
     <script type="module" src="/app.js"></script>
   </head>
@@ -16,17 +16,31 @@
           <h1>thumb<em>editor</em></h1>
         </header>
 
+        <section class="catalog-card" aria-labelledby="catalog-heading">
+          <div class="section-heading">
+            <div><h2 id="catalog-heading">Catalog</h2><p id="catalog-count" class="catalog-count"></p></div>
+            <button type="button" id="new-button" class="action-button">New</button>
+          </div>
+          <div class="catalog-search"><input id="catalog-filter" type="search" placeholder="Filter thumbnails" aria-label="Filter thumbnails" /></div>
+          <div id="catalog-list" class="catalog-list"></div>
+        </section>
+
         <section class="editor-card" aria-labelledby="editor-heading">
           <div class="section-heading">
-            <h2 id="editor-heading">Inputs</h2>
-            <button type="button" id="reset-button" class="reset-button" disabled>Reset <span aria-hidden="true">↺</span></button>
+            <h2 id="editor-heading"><span id="editor-heading-text">New thumbnail</span><span id="unsaved-mark" class="unsaved-mark" role="img" aria-label="Unsaved changes" title="Unsaved changes" hidden>●</span></h2>
+            <button type="button" id="reset-button" class="reset-button" disabled>Reset changes <span aria-hidden="true">↺</span></button>
           </div>
 
-          <form id="editor" class="editor-grid" hidden>
+          <form id="editor" class="editor-grid" hidden novalidate>
             <div class="editor-fields">
               <div class="field">
                 <label for="title">Title</label>
                 <input id="title" name="title" type="text" value="Your title here" autocomplete="off" required />
+              </div>
+              <div class="field">
+                <label for="slug">Slug</label>
+                <input id="slug" name="slug" type="text" placeholder="my-short-slug" autocomplete="off" spellcheck="false" required pattern="[a-z0-9]+(-[a-z0-9]+)*" maxlength="64" />
+                <p id="slug-error" class="field-error" role="alert" hidden></p>
               </div>
 
               <div class="field">
@@ -57,6 +71,10 @@
             </div>
           </form>
           <p id="preview-status" class="editor-status" role="status" aria-live="polite"></p>
+          <div class="save-bar">
+            <p id="save-status" role="status" aria-live="polite"></p>
+            <div class="save-actions"><button type="button" id="delete-button" class="delete-button" hidden>Delete</button><button type="submit" form="editor" id="save-button" class="action-button" disabled>Save to catalog</button></div>
+          </div>
         </section>
 
         <section class="previews" aria-label="OG image previews">

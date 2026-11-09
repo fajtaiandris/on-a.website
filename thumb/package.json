@@ -2,17 +2,21 @@
   "name": "thumb",
   "private": true,
   "type": "module",
-  "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "test": "node --test tests/*.test.mjs",
-    "typecheck": "tsc --noEmit"
+  "engines": {
+    "node": ">=22"
   },
-  "dependencies": {
-    "hono": "4.13.16"
+  "scripts": {
+    "compile:generator": "esbuild src/local.ts --bundle --platform=node --format=esm --outfile=.generated/generator.mjs",
+    "dev": "npm run compile:generator && node scripts/editor.mjs",
+    "build": "npm run typecheck && npm run compile:generator && node scripts/build.mjs",
+    "preview": "npm run build && wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
+    "test": "npm run compile:generator && node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "esbuild": "0.28.2",
+    "sharp": "0.35.5",
     "typescript": "7.0.2",
     "wrangler": "4.156.0"
   }

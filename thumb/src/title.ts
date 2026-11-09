@@ -1,6 +1,7 @@
 // SVG text does not wrap on its own. These advance widths leave room around Arial Bold glyphs.
 // The extra room also covers small differences in sans-serif fallback fonts.
 const letterSpacingEm = -0.083
+const minimumFontSize = 24
 const graphemeSegmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' })
 const graphemes = (text: string) => Array.from(graphemeSegmenter.segment(text), ({ segment }) => segment)
 
@@ -59,7 +60,7 @@ const wrapTitle = (title: string, fontSize: number, maxWidth: number) => {
 }
 
 export const layoutTitle = (title: string, baseFontSize: number, maxWidth: number, maxHeight: number) => {
-  for (let fontSize = baseFontSize; fontSize >= 4; fontSize -= 2) {
+  for (let fontSize = baseFontSize; fontSize >= minimumFontSize; fontSize -= 2) {
     const lines = wrapTitle(title, fontSize, maxWidth)
     const lineHeight = fontSize * 1.1
     if (lines.length * lineHeight <= maxHeight) {

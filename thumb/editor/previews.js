@@ -1,3 +1,10 @@
+export const previewUrl = ({ title, size, colors, pixelArt }) => {
+  const url = new URL('/local/preview', window.location.href)
+  const colorQuery = Object.entries(colors).map(([key, color]) => `${key}:${color.slice(1)}`).join(',')
+  url.search = new URLSearchParams({ title, size, colors: colorQuery, pixelArt }).toString()
+  return url.href
+}
+
 export const createPreviews = (titleInput, previews, previewStatus, readColors, readArt) => {
   const cards = [...previews.querySelectorAll('.preview-card')].map((element) => ({
     element,
@@ -54,12 +61,12 @@ export const createPreviews = (titleInput, previews, previewStatus, readColors, 
     const version = ++renderVersion
     const title = titleInput.value.trim()
     const pixelArt = readArt()
-    const colors = readColors()
+    const paletteResult = readColors()
     titleInput.setAttribute('aria-invalid', title ? 'false' : 'true')
-    describeField(!title ? titleInput : colors.field ?? null)
-    if (!title || colors.error) {
+    describeField(!title ? titleInput : paletteResult.field ?? null)
+    if (!title || paletteResult.error) {
       showStalePreviews()
-      previewStatus.textContent = !title ? 'Add a title to preview.' : colors.error
+      previewStatus.textContent = !title ? 'Add a title to preview.' : paletteResult.error
       return
     }
 
@@ -67,16 +74,15 @@ export const createPreviews = (titleInput, previews, previewStatus, readColors, 
     previewStatus.textContent = ''
     let hasValidationError = false
     for (const card of cards) {
-      const url = new URL('/og', window.location.href)
-      url.search = new URLSearchParams({ title, size: card.size, colors: colors.value, pixelArt }).toString()
+      const url = previewUrl({ title, size: card.size, colors: paletteResult.colors, pixelArt })
       markStale(card)
 
       card.image.onload = () => {
         if (version !== renderVersion) return
-        card.previous = { title, url: url.href }
+        card.previous = { title, url }
         card.element.classList.remove('is-stale')
         card.image.alt = `${card.size.replace('x', ' by ')} OG image preview: ${title}`
-        card.openLink.href = url.href
+        card.openLink.href = url
       }
       card.image.onerror = async () => {
         if (version !== renderVersion) return
@@ -85,7 +91,7 @@ export const createPreviews = (titleInput, previews, previewStatus, readColors, 
         if (!hasValidationError) previewStatus.textContent = `Could not load the ${card.size} preview.`
 
         try {
-          const response = await fetch(url.href, { cache: 'no-store' })
+          const response = await fetch(url, { cache: 'no-store' })
           if (response.status !== 400) return
           const message = (await response.text()).trim()
           if (version !== renderVersion || !message) return
@@ -101,7 +107,7 @@ export const createPreviews = (titleInput, previews, previewStatus, readColors, 
           // The generic load error remains visible if the response cannot be read.
         }
       }
-      card.image.src = url.href
+      card.image.src = url
     }
   }
 

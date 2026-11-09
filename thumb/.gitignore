@@ -1,3 +1,7 @@
 node_modules/
 .wrangler/
 .dev.vars*
+dist/
+.generated/
+.thumb-build-*/
+catalog.json.*.tmp
