@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "create-council": {
+      "source": "fajtaiandris/skills",
+      "sourceType": "github",
+      "skillPath": "create-council/SKILL.md",
+      "computedHash": "212d5e696e024538673a92db89854def283ed526aef2684442dde66257d3ecaa"
+    },
+    "iterate-with-council": {
+      "source": "fajtaiandris/skills",
+      "sourceType": "github",
+      "skillPath": "iterate-with-council/SKILL.md",
+      "computedHash": "a9158aab8d2871ae3510d71fbffcd99ce0cd8b6b3735a8b71a6e8591fb005468"
+    },
+    "review-with-council": {
+      "source": "fajtaiandris/skills",
+      "sourceType": "github",
+      "skillPath": "review-with-council/SKILL.md",
+      "computedHash": "01ea3d6d467dc3a5ef01fff20f4013344730956ec4ef7f9c9d5ef354c672df50"
+    }
+  }
+}
