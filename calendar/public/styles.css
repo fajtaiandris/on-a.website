@@ -1,0 +1,175 @@
+/* Fluid type and space follow Utopia's clamp method, from 360px to 1170px. */
+/* https://utopia.fyi/clamp/calculator/?a=360,1170,20—48|48—176|48—128|40—112|128—490|16—60|16—96|24—72|12—16 */
+:root {
+  --paper: #fefaf7;
+  --ink: #000;
+  --violet: #ddb4f0;
+  --blue: #607ef8;
+  --orange: #f19d61;
+  --red: #ec5545;
+  --green: #9dd76d;
+  --yellow: #f9df73;
+  --pink: #ee7fc6;
+  --mint: #5ebd72;
+
+  --step-brand: clamp(1.25rem, 0.4722rem + 3.4568vw, 3rem);
+  --step-edition: clamp(3rem, -0.5556rem + 15.8025vw, 11rem);
+  --step-weekday: clamp(3rem, 0.7778rem + 9.8765vw, 8rem);
+  --step-day: clamp(2.5rem, 0.5rem + 8.8889vw, 7rem);
+  --step-month: clamp(8rem, -2.0556rem + 44.6914vw, 30.625rem);
+
+  --space-edge-start: clamp(1rem, -0.2222rem + 5.4321vw, 3.75rem);
+  --space-edge-end: clamp(1rem, -1.2222rem + 9.8765vw, 6rem);
+  --space-header: clamp(1.5rem, 0.1667rem + 5.9259vw, 4.5rem);
+  --space-title: clamp(1.75rem, 0.5rem + 5.5556vw, 4.5625rem);
+  --space-after-rule: clamp(0.75rem, 0.6389rem + 0.4938vw, 1rem);
+  --month-shift: clamp(-2.5625rem, 0.7778rem - 4.5679vw, -0.25rem);
+  --brand-shift: clamp(-2.125rem, 0.5833rem - 3.7037vw, -0.25rem);
+  --table-shift: clamp(-0.625rem, 0.0972rem - 0.9877vw, -0.125rem);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { background: var(--paper); }
+
+body {
+  margin: 0;
+  min-width: 320px;
+  color: var(--ink);
+  background: var(--paper);
+  font-family: Arial, Helvetica, sans-serif;
+  font-weight: 900;
+}
+
+main {
+  width: min(100%, 1170px);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: var(--space-header) var(--space-edge-end) var(--space-title) var(--space-edge-start);
+}
+
+main > header {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  border-bottom: 4px solid currentColor;
+  padding-bottom: clamp(1rem, 0.5278rem + 2.0988vw, 2.0625rem);
+}
+
+main > header > span {
+  font-size: var(--step-edition);
+  line-height: 0.85;
+  letter-spacing: -0.075em;
+  white-space: nowrap;
+  transform: translateY(clamp(0rem, -0.2778rem + 1.2346vw, 0.625rem));
+}
+
+main > header > span:last-child {
+  padding-right: clamp(0rem, -0.3333rem + 1.4815vw, 0.75rem);
+  text-align: right;
+  letter-spacing: 0;
+}
+
+main > header > p {
+  margin: 0;
+  text-align: center;
+  text-transform: uppercase;
+  font-size: var(--step-brand);
+  line-height: 0.91;
+  letter-spacing: -0.025em;
+  transform: translate(var(--brand-shift), clamp(0rem, -0.1111rem + 0.4938vw, 0.25rem));
+}
+
+main > header > p > span { display: block; }
+
+main > section > h1 {
+  margin: var(--space-after-rule) 0 clamp(0rem, -0.25rem + 1.1111vw, 0.5625rem);
+  text-align: center;
+  text-transform: uppercase;
+  font-size: var(--step-month);
+  line-height: 0.91;
+  letter-spacing: -0.095em;
+  white-space: nowrap;
+  transform: translateX(var(--month-shift));
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  transform: translateX(var(--table-shift));
+}
+
+th, td {
+  width: 14.2857%;
+  padding: 0;
+  text-align: center;
+  font-weight: 900;
+}
+
+thead tr { height: clamp(3.5rem, 0.7222rem + 12.3457vw, 9.75rem); }
+th { font-size: var(--step-weekday); line-height: 1; vertical-align: middle; }
+th abbr { text-decoration: none; cursor: default; }
+
+tbody tr { height: clamp(3.25rem, 1.5556rem + 7.5309vw, 9rem); }
+td { font-size: var(--step-day); line-height: 1; vertical-align: middle; }
+td time {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  isolation: isolate;
+  letter-spacing: -0.08em;
+  transform: translateX(var(--table-shift));
+}
+
+td time[data-decoration]::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  top: 50%;
+  width: 1.1em;
+  aspect-ratio: 1;
+  background: var(--mark-color);
+  border-radius: var(--mark-radius-a, 50%) var(--mark-radius-b, 50%) 48% 52% / 52% 48% 54% 46%;
+  transform: translate(calc(-50% + var(--mark-x, 0em)), calc(-50% + var(--mark-y, 0em))) rotate(var(--mark-turn, 0deg));
+}
+
+td time[data-color="violet"] { --mark-color: var(--violet); }
+td time[data-color="blue"] { --mark-color: var(--blue); }
+td time[data-color="orange"] { --mark-color: var(--orange); }
+td time[data-color="red"] { --mark-color: var(--red); }
+td time[data-color="green"] { --mark-color: var(--green); }
+td time[data-color="yellow"] { --mark-color: var(--yellow); }
+td time[data-color="pink"] { --mark-color: var(--pink); }
+td time[data-color="mint"] { --mark-color: var(--mint); }
+
+td time[data-decoration="ring"]::before {
+  background: transparent;
+  border: 0.1em solid var(--mark-color);
+  width: 1.13em;
+}
+
+td time[data-decoration="underline"]::before {
+  top: auto;
+  bottom: -0.01em;
+  width: 95%;
+  height: 0.1em;
+  aspect-ratio: auto;
+  border-radius: 50%;
+  transform: translateX(calc(-50% + var(--mark-x, 0em))) rotate(var(--mark-turn, 0deg));
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  main > header { border-bottom-width: 2px; }
+  main > section > h1 { letter-spacing: -0.11em; }
+}

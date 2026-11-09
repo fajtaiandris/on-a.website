@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fefaf7">
+    <title>October 2026 — Presence House</title>
+    <link rel="stylesheet" href="./styles.css">
+    <script type="module" src="./calendar.js"></script>
+  </head>
+  <body>
+    <main>
+      <header aria-label="Calendar edition">
+        <span id="edition-month" aria-hidden="true">10</span>
+        <p aria-label="Presence House"><span>Presence</span><span>House</span></p>
+        <span id="edition-year" aria-hidden="true">‘26</span>
+      </header>
+
+      <section aria-labelledby="month-name">
+        <h1 id="month-name">OCT</h1>
+        <table>
+          <caption id="calendar-caption" class="visually-hidden">October 2026</caption>
+          <thead>
+            <tr>
+              <th scope="col"><abbr title="Sunday">S</abbr></th>
+              <th scope="col"><abbr title="Monday">M</abbr></th>
+              <th scope="col"><abbr title="Tuesday">T</abbr></th>
+              <th scope="col"><abbr title="Wednesday">W</abbr></th>
+              <th scope="col"><abbr title="Thursday">T</abbr></th>
+              <th scope="col"><abbr title="Friday">F</abbr></th>
+              <th scope="col"><abbr title="Saturday">S</abbr></th>
+            </tr>
+          </thead>
+          <tbody id="calendar-days"></tbody>
+        </table>
+      </section>
+    </main>
+  </body>
+</html>
